@@ -292,7 +292,12 @@ const DataGrid = React.memo(({ data, headers: initialHeaders }) => {
                     };
 
                     const handleMouseUp = () => {
-                      isResizingRef.current = false; // Reset resizing state
+                      // Add a small delay before setting isResizingRef to false
+                      // This prevents click events from being processed immediately after resize
+                      setTimeout(() => {
+                        isResizingRef.current = false; // Reset resizing state after delay
+                      }, 50); // 50ms delay is usually sufficient
+
                       document.removeEventListener(
                         "mousemove",
                         handleMouseMove
