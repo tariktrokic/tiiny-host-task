@@ -31,6 +31,9 @@ const DataGrid = React.memo(({ data, headers: initialHeaders }) => {
   const headerRef = useRef(null);
   const mutationObserverRef = useRef(null);
 
+  // Add a ref to track resizing state
+  const isResizingRef = useRef(false);
+
   // Calculate visible rows based on container height
   const visibleRowsCount = useMemo(
     () => Math.max(10, Math.ceil((dimensions.height || 300) / ROW_HEIGHT)),
@@ -214,6 +217,16 @@ const DataGrid = React.memo(({ data, headers: initialHeaders }) => {
     );
   }, []);
 
+  // Modify the onClick handler to check for resizing
+  const handleHeaderClick = useCallback(
+    (header) => {
+      if (!isResizingRef.current && header.sortable) {
+        handleSort(header.id);
+      }
+    },
+    [handleSort]
+  );
+
   // Empty state check
   if (_.isEmpty(data) || _.isEmpty(headers)) {
     return <div className="data-grid-empty">No data to display</div>;
@@ -241,7 +254,7 @@ const DataGrid = React.memo(({ data, headers: initialHeaders }) => {
                 header.sortable ? "sortable" : ""
               }`}
               style={{ width: header.width }}
-              onClick={() => header.sortable && handleSort(header.id)}
+              onClick={() => handleHeaderClick(header)}
             >
               <div className="header-content">
                 <span>{header.name}</span>
@@ -255,6 +268,7 @@ const DataGrid = React.memo(({ data, headers: initialHeaders }) => {
                 <div
                   className="resize-handle"
                   onMouseDown={(e) => {
+                    isResizingRef.current = true; // Set resizing state
                     const startX = e.clientX;
                     const startWidth = header.width;
                     const containerRect =
@@ -278,6 +292,7 @@ const DataGrid = React.memo(({ data, headers: initialHeaders }) => {
                     };
 
                     const handleMouseUp = () => {
+                      isResizingRef.current = false; // Reset resizing state
                       document.removeEventListener(
                         "mousemove",
                         handleMouseMove
